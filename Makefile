@@ -10,6 +10,11 @@ build:
 	mkdir -p $(BUILD_DIR)
 	gcc $(CC_FLAGS) `pkgconf --libs sdl2 SDL2_image --cflags sdl2` -o $(OUT)
 
+test:
+	mkdir -p $(BUILD_DIR)
+	gcc $(CC_FLAGS) -DTEST `pkgconf --libs sdl2 SDL2_image --cflags sdl2` -o $(OUT)_test
+	$(OUT)_test
+
 run:build
 	$(OUT)
 

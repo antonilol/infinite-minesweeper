@@ -1,3 +1,5 @@
+#ifndef TEST
+
 #include "renderer.h"
 #include "chunk.h"
 #include "game.h"
@@ -7,8 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-#define DEFAULT_MINE_THRESHOLD (-1U / 10 * 9)
 
 int main(int argc, char **argv) {
 	int i, err;
@@ -44,17 +44,13 @@ int main(int argc, char **argv) {
 		printf("No seed set, using %u (time)\n", seed);
 	}
 
-	game = calloc(1, sizeof(struct game));
-
-	if (game == NULL || alloc_chunk_list(CHUNK_LIST_SIZE)) {
+	if (init_game(seed)) {
 		return 1;
 	}
-	game->seed = seed;
-	game->mine_threshold = DEFAULT_MINE_THRESHOLD;
-	game->dirty = 1;
-	game->square_size = SQUARE_SIZE_DEFAULT;
 
 	start_renderer();
 
 	return 0;
 }
+
+#endif
