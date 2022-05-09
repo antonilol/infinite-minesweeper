@@ -1,0 +1,34 @@
+on: [ push, pull_request ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install pkgconf and SDL2
+        run: sudo apt install pkgconf libsdl2-dev libsdl2-image-dev
+      - name: Install Emscripten
+        run: |
+          git clone --depth=1 https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+      - name: Build
+        run: |
+          source emsdk/emsdk_env.sh
+          make all
+      - name: Checkout gh-pages branch
+        if: github.ref == 'refs/heads/master'
+        uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - name: Commit and push changes
+        if: github.ref == 'refs/heads/master'
+        run: |
+          cp web/* gh-pages/
+          cd gh-pages
+          git config user.name Github Actions
+          git config user.email github-actions@github.com
+          git commit -am deploy || echo -n
+          git push
