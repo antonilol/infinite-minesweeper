@@ -62,6 +62,11 @@ The compiled WASM binary and other needed files can be found in `web`
 
 `make all` will compile both native and webassembly
 
+### Pre built (WASM only)
+
+https://antonilol.github.io/infinite-minesweeper/ is built for every commit in this repository,
+its files can found on the [gh-pages branch](https://github.com/antonilol/infinite-minesweeper/tree/gh-pages).
+
 ### Developing
 
 PRs are welcome, but please discuss large changes with me first.
