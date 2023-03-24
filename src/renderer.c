@@ -264,6 +264,7 @@ void start_renderer() {
 #else
 	while (run) {
 		main_loop();
+		SDL_Delay(10);
 	}
 #endif
 
