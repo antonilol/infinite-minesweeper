@@ -1,10 +1,14 @@
 .PHONY: build web
 
+SHELL:=bash -O globstar
+
 BUILD_DIR=build
 EXEC=minesweeper
 OUT=$(BUILD_DIR)/$(EXEC)
 
 CC_FLAGS=src/*.c -O3 -Wall
+
+all:build web
 
 build:
 	mkdir -p $(BUILD_DIR)
@@ -36,3 +40,5 @@ all:build web
 clean:
 	rm -rf build web
 
+format:
+	clang-format -i -style="{ColumnLimit: 100, UseTab: Always, IndentWidth: 4, TabWidth: 4}" src/**/*.{c,h}

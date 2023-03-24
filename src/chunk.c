@@ -2,9 +2,9 @@
 #include "game.h"
 #include "renderer.h"
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int alloc_chunk_list(const uint32_t size) {
 	struct chunk **new_chunks;
@@ -25,7 +25,7 @@ int alloc_chunk_list(const uint32_t size) {
 	return 0;
 }
 
-int push_chunk(struct chunk* c) {
+int push_chunk(struct chunk *c) {
 	// should never be greater, only equal
 	if (game->chunks_count >= game->chunks_size) {
 		if (alloc_chunk_list(game->chunks_size + CHUNK_LIST_SIZE)) {
@@ -93,68 +93,53 @@ void check_covered_fields(struct chunk *c) {
 
 	if (!game->dead) {
 		// left top
-		if (
-			c->neighbors[NPOS(0, 0)] &&
-			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, 0)]->fields[POS(CHUNK_POS_MAX, CHUNK_POS_MAX)]) &&
-			field_get_mines(c->neighbors[NPOS(0, 0)], CHUNK_POS_MAX, CHUNK_POS_MAX) == 0
-		) {
+		if (c->neighbors[NPOS(0, 0)] &&
+			ISSET(FIELD_UNCOVERED,
+				  c->neighbors[NPOS(0, 0)]->fields[POS(CHUNK_POS_MAX, CHUNK_POS_MAX)]) &&
+			field_get_mines(c->neighbors[NPOS(0, 0)], CHUNK_POS_MAX, CHUNK_POS_MAX) == 0) {
 			uncover_field(c, 0, 0);
 		}
 		// right top
-		if (
-			c->neighbors[NPOS(2, 0)] &&
+		if (c->neighbors[NPOS(2, 0)] &&
 			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 0)]->fields[POS(0, CHUNK_POS_MAX)]) &&
-			field_get_mines(c->neighbors[NPOS(2, 0)], 0, CHUNK_POS_MAX) == 0
-		) {
+			field_get_mines(c->neighbors[NPOS(2, 0)], 0, CHUNK_POS_MAX) == 0) {
 			uncover_field(c, CHUNK_POS_MAX, 0);
 		}
 		// left bottom
-		if (
-			c->neighbors[NPOS(0, 2)] &&
+		if (c->neighbors[NPOS(0, 2)] &&
 			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, 2)]->fields[POS(CHUNK_POS_MAX, 0)]) &&
-			field_get_mines(c->neighbors[NPOS(0, 2)], CHUNK_POS_MAX, 0) == 0
-		) {
+			field_get_mines(c->neighbors[NPOS(0, 2)], CHUNK_POS_MAX, 0) == 0) {
 			uncover_field(c, 0, CHUNK_POS_MAX);
 		}
 		// right bottom
-		if (
-			c->neighbors[NPOS(2, 2)] &&
+		if (c->neighbors[NPOS(2, 2)] &&
 			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 2)]->fields[POS(0, 0)]) &&
-			field_get_mines(c->neighbors[NPOS(2, 2)], 0, 0) == 0
-		) {
+			field_get_mines(c->neighbors[NPOS(2, 2)], 0, 0) == 0) {
 			uncover_field(c, CHUNK_POS_MAX, CHUNK_POS_MAX);
 		}
 		for (i = 0; i < CHUNK_SIZE; i++) {
 			// top
-			if (
-				c->neighbors[NPOS(1, 0)] &&
+			if (c->neighbors[NPOS(1, 0)] &&
 				ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, 0)]->fields[POS(i, CHUNK_POS_MAX)]) &&
-				field_get_mines(c->neighbors[NPOS(1, 0)], i, CHUNK_POS_MAX) == 0
-			) {
+				field_get_mines(c->neighbors[NPOS(1, 0)], i, CHUNK_POS_MAX) == 0) {
 				uncover_field(c, i, 0);
 			}
 			// left
-			if (
-				c->neighbors[NPOS(0, 1)] &&
+			if (c->neighbors[NPOS(0, 1)] &&
 				ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, 1)]->fields[POS(CHUNK_POS_MAX, i)]) &&
-				field_get_mines(c->neighbors[NPOS(0, 1)], CHUNK_POS_MAX, i) == 0
-			) {
+				field_get_mines(c->neighbors[NPOS(0, 1)], CHUNK_POS_MAX, i) == 0) {
 				uncover_field(c, 0, i);
 			}
 			// right
-			if (
-				c->neighbors[NPOS(2, 1)] &&
+			if (c->neighbors[NPOS(2, 1)] &&
 				ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 1)]->fields[POS(0, i)]) &&
-				field_get_mines(c->neighbors[NPOS(2, 1)], 0, i) == 0
-			) {
+				field_get_mines(c->neighbors[NPOS(2, 1)], 0, i) == 0) {
 				uncover_field(c, CHUNK_POS_MAX, i);
 			}
 			// bottom
-			if (
-				c->neighbors[NPOS(1, 2)] &&
+			if (c->neighbors[NPOS(1, 2)] &&
 				ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, 2)]->fields[POS(i, 0)]) &&
-				field_get_mines(c->neighbors[NPOS(1, 2)], i, 0) == 0
-			) {
+				field_get_mines(c->neighbors[NPOS(1, 2)], i, 0) == 0) {
 				uncover_field(c, i, CHUNK_POS_MAX);
 			}
 		}

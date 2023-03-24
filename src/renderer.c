@@ -1,6 +1,6 @@
 #include "renderer.h"
-#include "game.h"
 #include "chunk.h"
+#include "game.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -13,8 +13,8 @@ static bool run;
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
-static SDL_Rect srcrect = { 0, 0, TEXTURE_SIZE, TEXTURE_SIZE },
-								dstrect = { 0, 0, SQUARE_SIZE_DEFAULT, SQUARE_SIZE_DEFAULT };
+static SDL_Rect srcrect = {0, 0, TEXTURE_SIZE, TEXTURE_SIZE},
+				dstrect = {0, 0, SQUARE_SIZE_DEFAULT, SQUARE_SIZE_DEFAULT};
 static SDL_Texture *texture;
 
 static int w, h;
@@ -26,7 +26,8 @@ static int init_sdl() {
 		return 1;
 	}
 
-	SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE, &window, &renderer);
+	SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE, &window,
+								&renderer);
 	if (window == NULL || renderer == NULL) {
 		printf("%s\n", SDL_GetError());
 		return 1;
@@ -44,7 +45,8 @@ static int init_textures() {
 		return 1;
 	}
 	if (surface->w != TEXTURE_SIZE || surface->h != TEXTURE_SIZE * TEXTURES) {
-		printf("Textures file " TEXTURES_FILE " has wrong size\nActual: %dx%d, must be: %dx%d\n", surface->w, surface->h, TEXTURE_SIZE, TEXTURE_SIZE * TEXTURES);
+		printf("Textures file " TEXTURES_FILE " has wrong size\nActual: %dx%d, must be: %dx%d\n",
+			   surface->w, surface->h, TEXTURE_SIZE, TEXTURE_SIZE * TEXTURES);
 		return 1;
 	}
 	texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -62,24 +64,30 @@ void cleanup_renderer() {
 	SDL_Quit();
 }
 
-void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t fx, const uint32_t fy, int *x, int *y) {
-	if (x) *x = (((int64_t) cx) * CHUNK_SIZE + ((int64_t) fx)) * game->square_size + game->view_x;
-	if (y) *y = (((int64_t) cy) * CHUNK_SIZE + ((int64_t) fy)) * game->square_size + game->view_y;
+void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t fx, const uint32_t fy,
+					int *x, int *y) {
+	if (x)
+		*x = (((int64_t)cx) * CHUNK_SIZE + ((int64_t)fx)) * game->square_size + game->view_x;
+	if (y)
+		*y = (((int64_t)cy) * CHUNK_SIZE + ((int64_t)fy)) * game->square_size + game->view_y;
 }
 
-static int64_t int_div(const int64_t a, const int64_t b) {
-	return a / b - (a < 0);
-}
+static int64_t int_div(const int64_t a, const int64_t b) { return a / b - (a < 0); }
 
-void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy, uint32_t *fx, uint32_t *fy) {
+void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy, uint32_t *fx,
+					uint32_t *fy) {
 	int64_t gfx, gfy;
 
 	gfx = int_div(x - game->view_x, game->square_size);
 	gfy = int_div(y - game->view_y, game->square_size);
-	if (cx) *cx = int_div(gfx, CHUNK_SIZE);
-	if (cy) *cy = int_div(gfy, CHUNK_SIZE);
-	if (fx) *fx = ((uint32_t) gfx) % CHUNK_SIZE;
-	if (fy) *fy = ((uint32_t) gfy) % CHUNK_SIZE;
+	if (cx)
+		*cx = int_div(gfx, CHUNK_SIZE);
+	if (cy)
+		*cy = int_div(gfy, CHUNK_SIZE);
+	if (fx)
+		*fx = ((uint32_t)gfx) % CHUNK_SIZE;
+	if (fy)
+		*fy = ((uint32_t)gfy) % CHUNK_SIZE;
 }
 
 int is_visible(struct chunk *c) {
@@ -88,7 +96,8 @@ int is_visible(struct chunk *c) {
 
 	game_to_screen(c->x, c->y, 0, 0, &x, &y);
 
-	visible = x + game->square_size * CHUNK_SIZE >= 0 && x < w && y + game->square_size * CHUNK_SIZE >= 0 && y < h;
+	visible = x + game->square_size * CHUNK_SIZE >= 0 && x < w &&
+			  y + game->square_size * CHUNK_SIZE >= 0 && y < h;
 
 	if (visible && !ISSET(CHUNK_VISIBLE, c->flags)) {
 		SET(CHUNK_VISIBLE, c->flags);
@@ -100,10 +109,8 @@ int is_visible(struct chunk *c) {
 }
 
 static void render_field(const int x, const int y, const uint8_t field, const int mines) {
-	if (
-		x < -game->square_size || x > game->square_size + w ||
-		y < -game->square_size || y > game->square_size + h
-	) {
+	if (x < -game->square_size || x > game->square_size + w || y < -game->square_size ||
+		y > game->square_size + h) {
 		return;
 	}
 
@@ -191,7 +198,7 @@ static void main_loop() {
 			break;
 		} else if (event.type == SDL_WINDOWEVENT) {
 			game->dirty = 1;
-    } else if (event.type == SDL_MOUSEBUTTONUP) {
+		} else if (event.type == SDL_MOUSEBUTTONUP) {
 			if (event.button.button == SDL_BUTTON_LEFT) {
 				if (moving) {
 					moving = false;
@@ -218,7 +225,8 @@ static void main_loop() {
 				game->dirty = 1;
 			}
 		} else if (event.type == SDL_MOUSEWHEEL) {
-			game->square_size += event.wheel.y * SQUARE_SIZE_STEP * (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -1 : 1);
+			game->square_size += event.wheel.y * SQUARE_SIZE_STEP *
+								 (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -1 : 1);
 			if (game->square_size > SQUARE_SIZE_MAX) {
 				game->square_size = SQUARE_SIZE_MAX;
 			} else if (game->square_size < SQUARE_SIZE_MIN) {

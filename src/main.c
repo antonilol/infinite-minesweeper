@@ -1,11 +1,11 @@
 #ifndef TEST
 
-#include "renderer.h"
 #include "chunk.h"
 #include "game.h"
+#include "renderer.h"
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>

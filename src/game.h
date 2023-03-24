@@ -12,7 +12,7 @@ struct game {
 	uint32_t chunks_count, chunks_size, mine_threshold, seed;
 	int64_t view_x, view_y;
 	int square_size;
-  bool dirty, dead;
+	bool dirty, dead;
 };
 
 extern struct game *game;

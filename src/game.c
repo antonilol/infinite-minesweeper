@@ -8,7 +8,7 @@ struct game *game;
 void cleanup() {
 	uint32_t i;
 
-  cleanup_renderer();
+	cleanup_renderer();
 
 	if (game->chunks) {
 		for (i = 0; i < game->chunks_count; i++) {
