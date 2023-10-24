@@ -72,18 +72,21 @@ void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t fx, con
 		*y = (((int64_t)cy) * CHUNK_SIZE + ((int64_t)fy)) * game->square_size + game->view_y;
 }
 
-static int64_t int_div(const int64_t a, const int64_t b) { return a / b - (a < 0); }
+// Equivalent to the sar (shift arithmetic right, a sign extending bit shift) instruction when b is a power of 2.
+static int64_t int_div_round_down(const int64_t a, const int64_t b) {
+	return (a - (a > 0 ? 0 : b - 1)) / b;
+}
 
 void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy, uint32_t *fx,
 					uint32_t *fy) {
 	int64_t gfx, gfy;
 
-	gfx = int_div(x - game->view_x, game->square_size);
-	gfy = int_div(y - game->view_y, game->square_size);
+	gfx = int_div_round_down(x - game->view_x, game->square_size);
+	gfy = int_div_round_down(y - game->view_y, game->square_size);
 	if (cx)
-		*cx = int_div(gfx, CHUNK_SIZE);
+		*cx = int_div_round_down(gfx, CHUNK_SIZE);
 	if (cy)
-		*cy = int_div(gfy, CHUNK_SIZE);
+		*cy = int_div_round_down(gfy, CHUNK_SIZE);
 	if (fx)
 		*fx = ((uint32_t)gfx) % CHUNK_SIZE;
 	if (fy)
@@ -99,8 +102,8 @@ int is_visible(struct chunk *c) {
 	visible = x + game->square_size * CHUNK_SIZE >= 0 && x < w &&
 			  y + game->square_size * CHUNK_SIZE >= 0 && y < h;
 
-	if (visible && !ISSET(CHUNK_VISIBLE, c->flags)) {
-		SET(CHUNK_VISIBLE, c->flags);
+	if (visible && ISSET(CHUNK_HIT, c->flags)) {
+		UNSET(CHUNK_HIT, c->flags);
 
 		check_covered_fields(c);
 	}
@@ -191,6 +194,7 @@ static void main_loop() {
 	struct chunk *c;
 	SDL_Event event;
 	uint32_t cx, cy, fx, fy;
+	int prev_square_size, new_square_size;
 
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_QUIT) {
@@ -208,7 +212,7 @@ static void main_loop() {
 					if (ISSET(FIELD_FLAG, c->fields[fy * CHUNK_SIZE + fx])) {
 						field_toggle_flag(c, fx, fy);
 					} else {
-						uncover_field(c, fx, fy);
+						uncover_field_inbounds(c, fx, fy);
 					}
 					game->dirty = 1;
 				}
@@ -225,14 +229,26 @@ static void main_loop() {
 				game->dirty = 1;
 			}
 		} else if (event.type == SDL_MOUSEWHEEL) {
-			game->square_size += event.wheel.y * SQUARE_SIZE_STEP *
-								 (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -1 : 1);
-			if (game->square_size > SQUARE_SIZE_MAX) {
-				game->square_size = SQUARE_SIZE_MAX;
-			} else if (game->square_size < SQUARE_SIZE_MIN) {
-				game->square_size = SQUARE_SIZE_MIN;
+			prev_square_size = game->square_size;
+
+			new_square_size =
+				prev_square_size + event.wheel.y * SQUARE_SIZE_STEP *
+									   (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -1 : 1);
+			if (new_square_size > SQUARE_SIZE_MAX) {
+				new_square_size = SQUARE_SIZE_MAX;
+			} else if (new_square_size < SQUARE_SIZE_MIN) {
+				new_square_size = SQUARE_SIZE_MIN;
 			}
-			dstrect.w = dstrect.h = game->square_size;
+
+			game->view_x = event.wheel.mouseX -
+						   int_div_round_down(new_square_size * (event.wheel.mouseX - game->view_x),
+											  prev_square_size);
+			game->view_y = event.wheel.mouseY -
+						   int_div_round_down(new_square_size * (event.wheel.mouseY - game->view_y),
+											  prev_square_size);
+
+			dstrect.w = dstrect.h = new_square_size;
+			game->square_size = new_square_size;
 			game->dirty = 1;
 		}
 	}
