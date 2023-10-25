@@ -72,7 +72,8 @@ void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t fx, con
 		*y = (((int64_t)cy) * CHUNK_SIZE + ((int64_t)fy)) * game->square_size + game->view_y;
 }
 
-// Equivalent to the sar (shift arithmetic right, a sign extending bit shift) instruction when b is a power of 2.
+// Equivalent to the sar (shift arithmetic right, a sign extending bit shift) instruction when b is
+// a power of 2.
 static int64_t int_div_round_down(const int64_t a, const int64_t b) {
 	return (a - (a > 0 ? 0 : b - 1)) / b;
 }
@@ -191,6 +192,8 @@ static void render() {
 }
 
 static void main_loop() {
+	static int mouseX, mouseY;
+
 	struct chunk *c;
 	SDL_Event event;
 	uint32_t cx, cy, fx, fy;
@@ -228,6 +231,8 @@ static void main_loop() {
 				game->view_y += event.motion.yrel;
 				game->dirty = 1;
 			}
+			mouseX = event.motion.x;
+			mouseY = event.motion.y;
 		} else if (event.type == SDL_MOUSEWHEEL) {
 			prev_square_size = game->square_size;
 
@@ -240,12 +245,10 @@ static void main_loop() {
 				new_square_size = SQUARE_SIZE_MIN;
 			}
 
-			game->view_x = event.wheel.mouseX -
-						   int_div_round_down(new_square_size * (event.wheel.mouseX - game->view_x),
-											  prev_square_size);
-			game->view_y = event.wheel.mouseY -
-						   int_div_round_down(new_square_size * (event.wheel.mouseY - game->view_y),
-											  prev_square_size);
+			game->view_x = mouseX - int_div_round_down(new_square_size * (mouseX - game->view_x),
+													   prev_square_size);
+			game->view_y = mouseY - int_div_round_down(new_square_size * (mouseY - game->view_y),
+													   prev_square_size);
 
 			dstrect.w = dstrect.h = new_square_size;
 			game->square_size = new_square_size;

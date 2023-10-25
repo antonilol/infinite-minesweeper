@@ -5,24 +5,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install pkgconf
-        run: sudo apt install pkgconf
-      - name: Install SDL2
-        run: |
-          wget https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.28.4.tar.gz
-          tar xf release-2.28.4.tar.gz
-          cd SDL-release-2.28.4
-          ./configure
-          make all
-          sudo make install
-      - name: Install SDL2 Image
-        run: |
-          wget https://github.com/libsdl-org/SDL_image/archive/refs/tags/release-2.6.3.tar.gz
-          tar xf release-2.6.3.tar.gz
-          cd SDL_image-release-2.6.3
-          ./configure
-          make all
-          sudo make install
+      - name: Install pkgconf and SDL2
+        run: sudo apt install pkgconf libsdl2-dev libsdl2-image-dev
       - name: Install Emscripten
         run: |
           git clone --depth=1 https://github.com/emscripten-core/emsdk.git
