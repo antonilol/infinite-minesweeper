@@ -25,12 +25,6 @@
 
 void cleanup_renderer();
 
-void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t fx, const uint32_t fy,
-					int *x, int *y);
-
-void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy, uint32_t *fx,
-					uint32_t *fy);
-
 int is_visible(struct chunk *c);
 
 void start_renderer();

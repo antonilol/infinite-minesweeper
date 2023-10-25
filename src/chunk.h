@@ -41,21 +41,11 @@ struct chunk {
 
 int alloc_chunk_list(const uint32_t size);
 
-int push_chunk(struct chunk *c);
-
 struct chunk *get_chunk_by_pos(const uint32_t x, const uint32_t y, const bool create);
-
-struct chunk *create_chunk(const uint32_t x, const uint32_t y);
 
 void check_covered_fields(struct chunk *c);
 
-void populate_chunk(struct chunk *c);
-
-int is_mine(struct chunk *c, uint32_t x, uint32_t y);
-
 struct chunk *get_neighbor(struct chunk *c, const uint32_t x, const uint32_t y);
-
-int correct_pos(struct chunk **c, uint32_t *x, uint32_t *y);
 
 int field_get_mines(struct chunk *c, const uint32_t x, const uint32_t y);
 

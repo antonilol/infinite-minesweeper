@@ -38,6 +38,8 @@ int push_chunk(struct chunk *c) {
 	return 0;
 }
 
+static struct chunk *create_chunk(const uint32_t x, const uint32_t y);
+
 struct chunk *get_chunk_by_pos(const uint32_t x, const uint32_t y, const bool create) {
 	uint32_t i;
 
@@ -61,7 +63,7 @@ static uint32_t xorshift32(uint32_t x) {
 	return x;
 }
 
-struct chunk *create_chunk(const uint32_t x, const uint32_t y) {
+static struct chunk *create_chunk(const uint32_t x, const uint32_t y) {
 	struct chunk *c, *n;
 	int i, j;
 
@@ -177,6 +179,8 @@ void populate_chunk(struct chunk *c) {
 	SET(CHUNK_POPULATED, c->flags);
 }
 
+static int correct_pos(struct chunk **c, uint32_t *x, uint32_t *y);
+
 int is_mine(struct chunk *c, uint32_t x, uint32_t y) {
 	if (correct_pos(&c, &x, &y)) {
 		return -1;
@@ -208,7 +212,7 @@ struct chunk *get_neighbor(struct chunk *c, const uint32_t x, const uint32_t y) 
 	return n;
 }
 
-int correct_pos(struct chunk **c, uint32_t *x, uint32_t *y) {
+static int correct_pos(struct chunk **c, uint32_t *x, uint32_t *y) {
 	struct chunk *n;
 	int ox, oy;
 

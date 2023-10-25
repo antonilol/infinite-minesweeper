@@ -13,8 +13,8 @@ static bool run;
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
-static SDL_Rect srcrect = {0, 0, TEXTURE_SIZE, TEXTURE_SIZE},
-				dstrect = {0, 0, SQUARE_SIZE_DEFAULT, SQUARE_SIZE_DEFAULT};
+static SDL_Rect texture_srcrect = {0, 0, TEXTURE_SIZE, TEXTURE_SIZE},
+				texture_dstrect = {0, 0, SQUARE_SIZE_DEFAULT, SQUARE_SIZE_DEFAULT};
 static SDL_Texture *texture;
 
 static int w, h;
@@ -64,22 +64,23 @@ void cleanup_renderer() {
 	SDL_Quit();
 }
 
-void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t fx, const uint32_t fy,
-					int *x, int *y) {
+static void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t fx,
+						   const uint32_t fy, int *x, int *y) {
 	if (x)
 		*x = (((int64_t)cx) * CHUNK_SIZE + ((int64_t)fx)) * game->square_size + game->view_x;
 	if (y)
 		*y = (((int64_t)cy) * CHUNK_SIZE + ((int64_t)fy)) * game->square_size + game->view_y;
 }
 
-// Equivalent to the sar (shift arithmetic right, a sign extending bit shift) instruction when b is
-// a power of 2.
+// int_div_round_down(a, 1 << s) == a >> s, where a is an int64_t and s a number valid for bit
+// shifting an int64_t. The return value for values of b that are not powers of two is equivalent
+// but can not be expressed using a bit shift.
 static int64_t int_div_round_down(const int64_t a, const int64_t b) {
 	return (a - (a > 0 ? 0 : b - 1)) / b;
 }
 
-void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy, uint32_t *fx,
-					uint32_t *fy) {
+static void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy, uint32_t *fx,
+						   uint32_t *fy) {
 	int64_t gfx, gfy;
 
 	gfx = int_div_round_down(x - game->view_x, game->square_size);
@@ -120,26 +121,26 @@ static void render_field(const int x, const int y, const uint8_t field, const in
 
 	if (ISSET(FIELD_FLAG, field)) {
 		if (game->dead && !ISSET(FIELD_MINE, field)) {
-			srcrect.y = TEXTURE_FLAG_WRONG * TEXTURE_SIZE;
+			texture_srcrect.y = TEXTURE_FLAG_WRONG * TEXTURE_SIZE;
 		} else {
-			srcrect.y = TEXTURE_FLAG * TEXTURE_SIZE;
+			texture_srcrect.y = TEXTURE_FLAG * TEXTURE_SIZE;
 		}
 	} else if (!game->dead && !ISSET(FIELD_UNCOVERED, field)) {
-		srcrect.y = TEXTURE_COVERED * TEXTURE_SIZE;
+		texture_srcrect.y = TEXTURE_COVERED * TEXTURE_SIZE;
 	} else if (ISSET(FIELD_MINE, field)) {
 		if (ISSET(FIELD_UNCOVERED, field)) {
-			srcrect.y = TEXTURE_MINE_HIT * TEXTURE_SIZE;
+			texture_srcrect.y = TEXTURE_MINE_HIT * TEXTURE_SIZE;
 		} else {
-			srcrect.y = TEXTURE_MINE * TEXTURE_SIZE;
+			texture_srcrect.y = TEXTURE_MINE * TEXTURE_SIZE;
 		}
 	} else {
-		srcrect.y = mines * TEXTURE_SIZE;
+		texture_srcrect.y = mines * TEXTURE_SIZE;
 	}
 
-	dstrect.x = x;
-	dstrect.y = y;
+	texture_dstrect.x = x;
+	texture_dstrect.y = y;
 
-	SDL_RenderCopy(renderer, texture, &srcrect, &dstrect);
+	SDL_RenderCopy(renderer, texture, &texture_srcrect, &texture_dstrect);
 }
 
 static void render_chunk(struct chunk *c) {
@@ -250,7 +251,7 @@ static void main_loop() {
 			game->view_y = mouseY - int_div_round_down(new_square_size * (mouseY - game->view_y),
 													   prev_square_size);
 
-			dstrect.w = dstrect.h = new_square_size;
+			texture_dstrect.w = texture_dstrect.h = new_square_size;
 			game->square_size = new_square_size;
 			game->dirty = 1;
 		}
