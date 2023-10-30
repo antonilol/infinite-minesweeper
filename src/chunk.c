@@ -96,7 +96,7 @@ static struct chunk *create_chunk(const uint32_t x, const uint32_t y) {
 	return c;
 }
 
-static void uncover_field_inbounds_recalcuate(struct chunk *c, uint32_t x, uint32_t y);
+static void uncover_field_inbounds_recalculate(struct chunk *c, uint32_t x, uint32_t y);
 
 void check_covered_fields(struct chunk *c) {
 	uint32_t i;
@@ -110,50 +110,50 @@ void check_covered_fields(struct chunk *c) {
 		ISSET(FIELD_UNCOVERED,
 			  c->neighbors[NPOS(0, 0)]->fields[POS(CHUNK_POS_MAX, CHUNK_POS_MAX)]) &&
 		field_get_mines(c->neighbors[NPOS(0, 0)], CHUNK_POS_MAX, CHUNK_POS_MAX) == 0) {
-		uncover_field_inbounds_recalcuate(c, 0, 0);
+		uncover_field_inbounds_recalculate(c, 0, 0);
 	}
 	// right top
 	if (c->neighbors[NPOS(2, 0)] &&
 		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 0)]->fields[POS(0, CHUNK_POS_MAX)]) &&
 		field_get_mines(c->neighbors[NPOS(2, 0)], 0, CHUNK_POS_MAX) == 0) {
-		uncover_field_inbounds_recalcuate(c, CHUNK_POS_MAX, 0);
+		uncover_field_inbounds_recalculate(c, CHUNK_POS_MAX, 0);
 	}
 	// left bottom
 	if (c->neighbors[NPOS(0, 2)] &&
 		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, 2)]->fields[POS(CHUNK_POS_MAX, 0)]) &&
 		field_get_mines(c->neighbors[NPOS(0, 2)], CHUNK_POS_MAX, 0) == 0) {
-		uncover_field_inbounds_recalcuate(c, 0, CHUNK_POS_MAX);
+		uncover_field_inbounds_recalculate(c, 0, CHUNK_POS_MAX);
 	}
 	// right bottom
 	if (c->neighbors[NPOS(2, 2)] &&
 		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 2)]->fields[POS(0, 0)]) &&
 		field_get_mines(c->neighbors[NPOS(2, 2)], 0, 0) == 0) {
-		uncover_field_inbounds_recalcuate(c, CHUNK_POS_MAX, CHUNK_POS_MAX);
+		uncover_field_inbounds_recalculate(c, CHUNK_POS_MAX, CHUNK_POS_MAX);
 	}
 	for (i = 0; i < CHUNK_SIZE; i++) {
 		// top
 		if (c->neighbors[NPOS(1, 0)] &&
 			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, 0)]->fields[POS(i, CHUNK_POS_MAX)]) &&
 			field_get_mines(c->neighbors[NPOS(1, 0)], i, CHUNK_POS_MAX) == 0) {
-			uncover_field_inbounds_recalcuate(c, i, 0);
+			uncover_field_inbounds_recalculate(c, i, 0);
 		}
 		// left
 		if (c->neighbors[NPOS(0, 1)] &&
 			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, 1)]->fields[POS(CHUNK_POS_MAX, i)]) &&
 			field_get_mines(c->neighbors[NPOS(0, 1)], CHUNK_POS_MAX, i) == 0) {
-			uncover_field_inbounds_recalcuate(c, 0, i);
+			uncover_field_inbounds_recalculate(c, 0, i);
 		}
 		// right
 		if (c->neighbors[NPOS(2, 1)] &&
 			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 1)]->fields[POS(0, i)]) &&
 			field_get_mines(c->neighbors[NPOS(2, 1)], 0, i) == 0) {
-			uncover_field_inbounds_recalcuate(c, CHUNK_POS_MAX, i);
+			uncover_field_inbounds_recalculate(c, CHUNK_POS_MAX, i);
 		}
 		// bottom
 		if (c->neighbors[NPOS(1, 2)] &&
 			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, 2)]->fields[POS(i, 0)]) &&
 			field_get_mines(c->neighbors[NPOS(1, 2)], i, 0) == 0) {
-			uncover_field_inbounds_recalcuate(c, i, CHUNK_POS_MAX);
+			uncover_field_inbounds_recalculate(c, i, CHUNK_POS_MAX);
 		}
 	}
 }
@@ -278,7 +278,7 @@ void uncover_field_inbounds(struct chunk *c, uint32_t x, uint32_t y) {
 		return;
 	}
 
-	uncover_field_inbounds_recalcuate(c, x, y);
+	uncover_field_inbounds_recalculate(c, x, y);
 }
 
 static void uncover_field(struct chunk *c, uint32_t x, uint32_t y) {
@@ -294,10 +294,10 @@ static void uncover_field(struct chunk *c, uint32_t x, uint32_t y) {
 		return;
 	}
 
-	uncover_field_inbounds_recalcuate(c, x, y);
+	uncover_field_inbounds_recalculate(c, x, y);
 }
 
-static void uncover_field_inbounds_recalcuate(struct chunk *c, uint32_t x, uint32_t y) {
+static void uncover_field_inbounds_recalculate(struct chunk *c, uint32_t x, uint32_t y) {
 	int mines, i, j;
 
 	if (ISSET(FIELD_FLAG, c->fields[POS(x, y)])) {
