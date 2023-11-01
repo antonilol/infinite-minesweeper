@@ -10,16 +10,15 @@
 #define TOGGLE(flag, flags) ((flags) ^= (flag))
 #define ISSET(flag, flags) ((flags) & (flag))
 
-#define CHUNK_SIZE 64
+#define CHUNK_SIZE_2LOG 6
+#define CHUNK_SIZE (1 << CHUNK_SIZE_2LOG)
 #define CHUNK_LIST_SIZE 256
 #define CHUNK_POS_MAX (CHUNK_SIZE - 1)
 
 // Get chunk index from its x and y
 #define POS(x, y) ((x) + CHUNK_SIZE * (y))
-// Get neightbor index from x and y, unsigned coordinates (between 0 and 2, inclusive)
-#define NPOS(x, y) ((x) + 3 * (y))
-// Get neightbor index from x and y, signed coordinates (between -1 and 1, inclusive)
-#define SNPOS(x, y) ((x) + 3 * (y) + 4)
+// Get neightbor index from x and y, coordinates must be between -1 and 1, inclusive
+#define NPOS(x, y) ((x) + 3 * (y) + 4)
 
 // chunk flags
 #define CHUNK_POPULATED 0x01
@@ -45,7 +44,7 @@ struct chunk *get_chunk_by_pos(const uint32_t x, const uint32_t y, const bool cr
 
 void check_covered_fields(struct chunk *c);
 
-struct chunk *get_neighbor(struct chunk *c, const uint32_t x, const uint32_t y);
+struct chunk *get_neighbor(struct chunk *c, const int32_t x, const int32_t y);
 
 int field_get_mines(struct chunk *c, const uint32_t x, const uint32_t y);
 

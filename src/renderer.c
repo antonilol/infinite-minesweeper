@@ -76,7 +76,7 @@ static void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t 
 // shifting an int64_t. The return value for values of b that are not powers of two is equivalent
 // but can not be expressed using a bit shift.
 static int64_t int_div_round_down(const int64_t a, const int64_t b) {
-	return (a - (a > 0 ? 0 : b - 1)) / b;
+	return a / b - (a < 0 && a % b != 0);
 }
 
 static void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy, uint32_t *fx,
@@ -86,9 +86,9 @@ static void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy,
 	gfx = int_div_round_down(x - game->view_x, game->square_size);
 	gfy = int_div_round_down(y - game->view_y, game->square_size);
 	if (cx)
-		*cx = int_div_round_down(gfx, CHUNK_SIZE);
+		*cx = gfx >> CHUNK_SIZE_2LOG;
 	if (cy)
-		*cy = int_div_round_down(gfy, CHUNK_SIZE);
+		*cy = gfy >> CHUNK_SIZE_2LOG;
 	if (fx)
 		*fx = ((uint32_t)gfx) % CHUNK_SIZE;
 	if (fy)
@@ -171,8 +171,9 @@ static void render_chunk(struct chunk *c) {
 }
 
 static void render() {
-	struct chunk *c;
+	static struct chunk *c = NULL;
 	uint32_t x, y;
+	int32_t dx, dy;
 
 	if (game->dirty) {
 		SDL_GetWindowSize(window, &w, &h);
@@ -182,7 +183,25 @@ static void render() {
 
 		screen_to_game(0, 0, &x, &y, NULL, NULL);
 
-		c = get_chunk_by_pos(x, y, true);
+		if (c == NULL) {
+			// first time rendering
+			c = get_chunk_by_pos(x, y, true);
+		} else {
+			dx = x - c->x;
+			dy = y - c->y;
+			if (dx == 0 && dy == 0) {
+				// no lookup, we got the right chunk already
+				// most of the time the previous frame started with the same chunk
+			} else if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) {
+				// O(1) lookup, we moved less than one chunk between two frames
+				// every time we move the screen origin (0, 0) over a chunk boundary
+				c = c->neighbors[NPOS(dx, dy)];
+			} else {
+				// O(n) lookup, we moved *over* a chunk
+				// is is super rare
+				c = get_chunk_by_pos(x, y, true);
+			}
+		}
 
 		render_chunk(c);
 
@@ -213,7 +232,7 @@ static void main_loop() {
 				} else {
 					screen_to_game(event.button.x, event.button.y, &cx, &cy, &fx, &fy);
 					c = get_chunk_by_pos(cx, cy, true);
-					if (ISSET(FIELD_FLAG, c->fields[fy * CHUNK_SIZE + fx])) {
+					if (ISSET(FIELD_FLAG, c->fields[POS(fx, fy)])) {
 						field_toggle_flag(c, fx, fy);
 					} else {
 						uncover_field_inbounds(c, fx, fy);

@@ -79,15 +79,16 @@ static struct chunk *create_chunk(const uint32_t x, const uint32_t y) {
 	c->seed = xorshift32(xorshift32(xorshift32(x) ^ y) ^ game->seed) | 1;
 
 	// link neighbors
-	for (i = 0; i < 3; i++) {
-		for (j = 0; j < 3; j++) {
-			if (i != 1 || j != 1) {
-				n = get_chunk_by_pos(x + j - 1, y + i - 1, false);
-				if (n != NULL) {
-					n->neighbors[8 - (i * 3 + j)] = c;
-				}
-				c->neighbors[i * 3 + j] = n;
+	for (i = -1; i <= 1; i++) {
+		for (j = -1; j <= 1; j++) {
+			if (i == 0 && j == 0) {
+				continue;
 			}
+			n = get_chunk_by_pos(x + j, y + i, false);
+			if (n != NULL) {
+				n->neighbors[NPOS(-j, -i)] = c;
+			}
+			c->neighbors[NPOS(j, i)] = n;
 		}
 	}
 
@@ -106,53 +107,53 @@ void check_covered_fields(struct chunk *c) {
 	}
 
 	// left top
-	if (c->neighbors[NPOS(0, 0)] &&
+	if (c->neighbors[NPOS(-1, -1)] &&
 		ISSET(FIELD_UNCOVERED,
-			  c->neighbors[NPOS(0, 0)]->fields[POS(CHUNK_POS_MAX, CHUNK_POS_MAX)]) &&
-		field_get_mines(c->neighbors[NPOS(0, 0)], CHUNK_POS_MAX, CHUNK_POS_MAX) == 0) {
+			  c->neighbors[NPOS(-1, -1)]->fields[POS(CHUNK_POS_MAX, CHUNK_POS_MAX)]) &&
+		field_get_mines(c->neighbors[NPOS(-1, -1)], CHUNK_POS_MAX, CHUNK_POS_MAX) == 0) {
 		uncover_field_inbounds_recalculate(c, 0, 0);
 	}
 	// right top
-	if (c->neighbors[NPOS(2, 0)] &&
-		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 0)]->fields[POS(0, CHUNK_POS_MAX)]) &&
-		field_get_mines(c->neighbors[NPOS(2, 0)], 0, CHUNK_POS_MAX) == 0) {
+	if (c->neighbors[NPOS(1, -1)] &&
+		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, -1)]->fields[POS(0, CHUNK_POS_MAX)]) &&
+		field_get_mines(c->neighbors[NPOS(1, -1)], 0, CHUNK_POS_MAX) == 0) {
 		uncover_field_inbounds_recalculate(c, CHUNK_POS_MAX, 0);
 	}
 	// left bottom
-	if (c->neighbors[NPOS(0, 2)] &&
-		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, 2)]->fields[POS(CHUNK_POS_MAX, 0)]) &&
-		field_get_mines(c->neighbors[NPOS(0, 2)], CHUNK_POS_MAX, 0) == 0) {
+	if (c->neighbors[NPOS(-1, 1)] &&
+		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(-1, 1)]->fields[POS(CHUNK_POS_MAX, 0)]) &&
+		field_get_mines(c->neighbors[NPOS(-1, 1)], CHUNK_POS_MAX, 0) == 0) {
 		uncover_field_inbounds_recalculate(c, 0, CHUNK_POS_MAX);
 	}
 	// right bottom
-	if (c->neighbors[NPOS(2, 2)] &&
-		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 2)]->fields[POS(0, 0)]) &&
-		field_get_mines(c->neighbors[NPOS(2, 2)], 0, 0) == 0) {
+	if (c->neighbors[NPOS(1, 1)] &&
+		ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, 1)]->fields[POS(0, 0)]) &&
+		field_get_mines(c->neighbors[NPOS(1, 1)], 0, 0) == 0) {
 		uncover_field_inbounds_recalculate(c, CHUNK_POS_MAX, CHUNK_POS_MAX);
 	}
 	for (i = 0; i < CHUNK_SIZE; i++) {
 		// top
-		if (c->neighbors[NPOS(1, 0)] &&
-			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, 0)]->fields[POS(i, CHUNK_POS_MAX)]) &&
-			field_get_mines(c->neighbors[NPOS(1, 0)], i, CHUNK_POS_MAX) == 0) {
+		if (c->neighbors[NPOS(0, -1)] &&
+			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, -1)]->fields[POS(i, CHUNK_POS_MAX)]) &&
+			field_get_mines(c->neighbors[NPOS(0, -1)], i, CHUNK_POS_MAX) == 0) {
 			uncover_field_inbounds_recalculate(c, i, 0);
 		}
 		// left
-		if (c->neighbors[NPOS(0, 1)] &&
-			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, 1)]->fields[POS(CHUNK_POS_MAX, i)]) &&
-			field_get_mines(c->neighbors[NPOS(0, 1)], CHUNK_POS_MAX, i) == 0) {
+		if (c->neighbors[NPOS(-1, 0)] &&
+			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(-1, 0)]->fields[POS(CHUNK_POS_MAX, i)]) &&
+			field_get_mines(c->neighbors[NPOS(-1, 0)], CHUNK_POS_MAX, i) == 0) {
 			uncover_field_inbounds_recalculate(c, 0, i);
 		}
 		// right
-		if (c->neighbors[NPOS(2, 1)] &&
-			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(2, 1)]->fields[POS(0, i)]) &&
-			field_get_mines(c->neighbors[NPOS(2, 1)], 0, i) == 0) {
+		if (c->neighbors[NPOS(1, 0)] &&
+			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, 0)]->fields[POS(0, i)]) &&
+			field_get_mines(c->neighbors[NPOS(1, 0)], 0, i) == 0) {
 			uncover_field_inbounds_recalculate(c, CHUNK_POS_MAX, i);
 		}
 		// bottom
-		if (c->neighbors[NPOS(1, 2)] &&
-			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(1, 2)]->fields[POS(i, 0)]) &&
-			field_get_mines(c->neighbors[NPOS(1, 2)], i, 0) == 0) {
+		if (c->neighbors[NPOS(0, 1)] &&
+			ISSET(FIELD_UNCOVERED, c->neighbors[NPOS(0, 1)]->fields[POS(i, 0)]) &&
+			field_get_mines(c->neighbors[NPOS(0, 1)], i, 0) == 0) {
 			uncover_field_inbounds_recalculate(c, i, CHUNK_POS_MAX);
 		}
 	}
@@ -179,9 +180,9 @@ void populate_chunk(struct chunk *c) {
 	SET(CHUNK_POPULATED, c->flags);
 }
 
-static int correct_pos(struct chunk **c, uint32_t *x, uint32_t *y);
+static int correct_pos(struct chunk **c, int32_t *x, int32_t *y);
 
-int is_mine(struct chunk *c, uint32_t x, uint32_t y) {
+int is_mine(struct chunk *c, int32_t x, int32_t y) {
 	if (correct_pos(&c, &x, &y)) {
 		return -1;
 	}
@@ -191,18 +192,18 @@ int is_mine(struct chunk *c, uint32_t x, uint32_t y) {
 	return ISSET(FIELD_MINE, c->fields[POS(x, y)]);
 }
 
-struct chunk *get_neighbor(struct chunk *c, const uint32_t x, const uint32_t y) {
+struct chunk *get_neighbor(struct chunk *c, const int32_t x, const int32_t y) {
 	struct chunk *n;
 
-	if (c->neighbors[SNPOS(x, y)] == NULL) {
+	if (c->neighbors[NPOS(x, y)] == NULL) {
 		n = create_chunk(c->x + x, c->y + y);
 	} else {
-		n = c->neighbors[SNPOS(x, y)];
+		n = c->neighbors[NPOS(x, y)];
 	}
 
-	if (c->neighbors[SNPOS(x, y)] == NULL) {
-		printf("BUG: neighbor %d,%d not linked to %d,%d\n", c->x + x, c->y + y, c->x, c->y);
-	}
+	// if (c->neighbors[NPOS(x, y)] == NULL) {
+	// 	printf("BUG: neighbor %d,%d not linked to %d,%d\n", c->x + x, c->y + y, c->x, c->y);
+	// }
 
 	if (!is_visible(c) && !is_visible(n)) {
 		SET(CHUNK_HIT, n->flags);
@@ -212,16 +213,16 @@ struct chunk *get_neighbor(struct chunk *c, const uint32_t x, const uint32_t y) 
 	return n;
 }
 
-static int correct_pos(struct chunk **c, uint32_t *x, uint32_t *y) {
+static int correct_pos(struct chunk **c, int32_t *x, int32_t *y) {
 	struct chunk *n;
 	int ox, oy;
 
 	ox = *x == CHUNK_SIZE;
-	if (*x > CHUNK_SIZE) {
+	if (*x < 0) {
 		ox = -1;
 	}
 	oy = *y == CHUNK_SIZE;
-	if (*y > CHUNK_SIZE) {
+	if (*y < 0) {
 		oy = -1;
 	}
 
@@ -251,15 +252,16 @@ int field_get_mines(struct chunk *c, const uint32_t x, const uint32_t y) {
 
 	mines = 0;
 
-	for (i = 0; i < 3; i++) {
-		for (j = 0; j < 3; j++) {
-			if (i != 1 || j != 1) {
-				m = is_mine(c, x + j - 1, y + i - 1);
-				if (m == -1) {
-					return -1;
-				} else if (m) {
-					mines++;
-				}
+	for (i = -1; i <= 1; i++) {
+		for (j = -1; j <= 1; j++) {
+			if (i == 0 && j == 0) {
+				continue;
+			}
+			m = is_mine(c, x + j, y + i);
+			if (m == -1) {
+				return -1;
+			} else if (m) {
+				mines++;
 			}
 		}
 	}
@@ -281,7 +283,7 @@ void uncover_field_inbounds(struct chunk *c, uint32_t x, uint32_t y) {
 	uncover_field_inbounds_recalculate(c, x, y);
 }
 
-static void uncover_field(struct chunk *c, uint32_t x, uint32_t y) {
+static void uncover_field(struct chunk *c, int32_t x, int32_t y) {
 	if (game->dead) {
 		return;
 	}
@@ -309,18 +311,21 @@ static void uncover_field_inbounds_recalculate(struct chunk *c, uint32_t x, uint
 		game->dead = 1;
 		return;
 	}
+
 	mines = field_get_mines(c, x, y);
 	// useless. if mines != 0 it will do nothing anyway
 	// if (mines == -1) {
 	// 	 return;
 	// }
-	if (mines == 0) {
-		for (i = 0; i < 3; i++) {
-			for (j = 0; j < 3; j++) {
-				if (i != 1 || j != 1) {
-					uncover_field(c, x + j - 1, y + i - 1);
-				}
+	if (mines != 0) {
+		return;
+	}
+	for (i = -1; i <= 1; i++) {
+		for (j = -1; j <= 1; j++) {
+			if (i == 0 && j == 0) {
+				continue;
 			}
+			uncover_field(c, x + j, y + i);
 		}
 	}
 }
