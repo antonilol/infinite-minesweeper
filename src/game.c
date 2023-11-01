@@ -1,6 +1,10 @@
 #include "game.h"
-#include "renderer.h"
 
+#include "chunk.h"
+#include "renderer.h"
+#include "util.h"
+
+#include <stdint.h>
 #include <stdlib.h>
 
 struct game *game;
@@ -23,9 +27,11 @@ void cleanup() {
 int init_game(const uint32_t seed) {
 	game = calloc(1, sizeof(struct game));
 
-	if (game == NULL || alloc_chunk_list(CHUNK_LIST_SIZE)) {
-		return 1;
+	if (game == NULL) {
+		handle_alloc_error();
 	}
+
+	alloc_chunk_list(CHUNK_LIST_SIZE);
 
 	game->seed = seed;
 	game->mine_threshold = DEFAULT_MINE_THRESHOLD;

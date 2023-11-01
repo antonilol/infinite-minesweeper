@@ -4,12 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define BIT(n) (1 << (n))
-#define SET(flag, flags) ((flags) |= (flag))
-#define UNSET(flag, flags) ((flags) &= ~(flag))
-#define TOGGLE(flag, flags) ((flags) ^= (flag))
-#define ISSET(flag, flags) ((flags) & (flag))
-
 #define CHUNK_SIZE_2LOG 6
 #define CHUNK_SIZE (1 << CHUNK_SIZE_2LOG)
 #define CHUNK_LIST_SIZE 256
@@ -38,7 +32,7 @@ struct chunk {
 	uint8_t flags;
 };
 
-int alloc_chunk_list(const uint32_t size);
+void alloc_chunk_list(const uint32_t size);
 
 struct chunk *get_chunk_by_pos(const uint32_t x, const uint32_t y, const bool create);
 

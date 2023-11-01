@@ -1,12 +1,14 @@
 #include "chunk.h"
+
 #include "game.h"
 #include "renderer.h"
+#include "util.h"
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-int alloc_chunk_list(const uint32_t size) {
+void alloc_chunk_list(const uint32_t size) {
 	struct chunk **new_chunks;
 
 	if (game->chunks) {
@@ -16,26 +18,20 @@ int alloc_chunk_list(const uint32_t size) {
 	}
 
 	if (new_chunks == NULL) {
-		return -1;
+		handle_alloc_error();
 	}
 
 	game->chunks = new_chunks;
 	game->chunks_size = size;
-
-	return 0;
 }
 
-int push_chunk(struct chunk *c) {
+static void push_chunk(struct chunk *c) {
 	// should never be greater, only equal
 	if (game->chunks_count >= game->chunks_size) {
-		if (alloc_chunk_list(game->chunks_size + CHUNK_LIST_SIZE)) {
-			return -1;
-		}
+		alloc_chunk_list(game->chunks_size + CHUNK_LIST_SIZE);
 	}
 
 	game->chunks[game->chunks_count++] = c;
-
-	return 0;
 }
 
 static struct chunk *create_chunk(const uint32_t x, const uint32_t y);
@@ -70,7 +66,7 @@ static struct chunk *create_chunk(const uint32_t x, const uint32_t y) {
 	c = calloc(1, sizeof(struct chunk));
 
 	if (c == NULL) {
-		return NULL;
+		handle_alloc_error();
 	}
 
 	c->x = x;
