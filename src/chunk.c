@@ -215,18 +215,12 @@ struct chunk *get_neighbor(struct chunk *c, const int32_t x, const int32_t y) {
 
 static int correct_pos(struct chunk **c, int32_t *x, int32_t *y) {
 	struct chunk *n;
-	int ox, oy;
+	int32_t ox, oy;
 
-	ox = *x == CHUNK_SIZE;
-	if (*x < 0) {
-		ox = -1;
-	}
-	oy = *y == CHUNK_SIZE;
-	if (*y < 0) {
-		oy = -1;
-	}
+	ox = *x >> CHUNK_SIZE_2LOG;
+	oy = *y >> CHUNK_SIZE_2LOG;
 
-	if (ox || oy) {
+	if (ox != 0 || oy != 0) {
 		n = get_neighbor(*c, ox, oy);
 
 		if (n == NULL) {
