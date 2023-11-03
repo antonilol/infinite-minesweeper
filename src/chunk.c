@@ -11,10 +11,10 @@
 void alloc_chunk_list(const uint32_t size) {
 	struct chunk **new_chunks;
 
-	if (game->chunks) {
-		new_chunks = realloc(game->chunks, sizeof(game->chunks) * size);
-	} else {
+	if (game->chunks == NULL) {
 		new_chunks = malloc(sizeof(game->chunks) * size);
+	} else {
+		new_chunks = realloc(game->chunks, sizeof(game->chunks) * size);
 	}
 
 	if (new_chunks == NULL) {

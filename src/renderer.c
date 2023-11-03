@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <stdint.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -66,12 +67,18 @@ void cleanup_renderer() {
 	SDL_Quit();
 }
 
+static int game_to_screen_x(const uint32_t cx, const uint32_t fx) {
+	return (((int64_t)cx) * CHUNK_SIZE + ((int64_t)fx)) * game->square_size + game->view_x;
+}
+
+static int game_to_screen_y(const uint32_t cy, const uint32_t fy) {
+	return (((int64_t)cy) * CHUNK_SIZE + ((int64_t)fy)) * game->square_size + game->view_y;
+}
+
 static void game_to_screen(const uint32_t cx, const uint32_t cy, const uint32_t fx,
 						   const uint32_t fy, int *x, int *y) {
-	if (x)
-		*x = (((int64_t)cx) * CHUNK_SIZE + ((int64_t)fx)) * game->square_size + game->view_x;
-	if (y)
-		*y = (((int64_t)cy) * CHUNK_SIZE + ((int64_t)fy)) * game->square_size + game->view_y;
+	*x = game_to_screen_x(cx, fx);
+	*y = game_to_screen_y(cy, fy);
 }
 
 // int_div_round_down(a, 1 << s) == a >> s, where a is an int64_t and s a number valid for bit
@@ -87,14 +94,14 @@ static void screen_to_game(const int x, const int y, uint32_t *cx, uint32_t *cy,
 
 	gfx = int_div_round_down(x - game->view_x, game->square_size);
 	gfy = int_div_round_down(y - game->view_y, game->square_size);
-	if (cx)
-		*cx = gfx >> CHUNK_SIZE_2LOG;
-	if (cy)
-		*cy = gfy >> CHUNK_SIZE_2LOG;
-	if (fx)
+
+	*cx = gfx >> CHUNK_SIZE_2LOG;
+	*cy = gfy >> CHUNK_SIZE_2LOG;
+
+	if (fx) {
 		*fx = ((uint32_t)gfx) % CHUNK_SIZE;
-	if (fy)
 		*fy = ((uint32_t)gfy) % CHUNK_SIZE;
+	}
 }
 
 int is_visible(struct chunk *c) {
@@ -116,11 +123,6 @@ int is_visible(struct chunk *c) {
 }
 
 static void render_field(const int x, const int y, const uint8_t field, const int mines) {
-	if (x < -game->square_size || x > game->square_size + w || y < -game->square_size ||
-		y > game->square_size + h) {
-		return;
-	}
-
 	if (ISSET(FIELD_FLAG, field)) {
 		if (game->dead && !ISSET(FIELD_MINE, field)) {
 			texture_srcrect.y = TEXTURE_FLAG_WRONG * TEXTURE_SIZE;
@@ -150,8 +152,23 @@ static void render_chunk(struct chunk *c) {
 	int x, y, sx, sy;
 
 	for (y = 0; y < CHUNK_SIZE; y++) {
+		sy = game_to_screen_y(c->y, y);
+
+		if (sy < -game->square_size) {
+			continue;
+		} else if (sy > game->square_size + h) {
+			break;
+		}
+
 		for (x = 0; x < CHUNK_SIZE; x++) {
-			game_to_screen(c->x, c->y, x, y, &sx, &sy);
+			sx = game_to_screen_x(c->x, x);
+
+			if (sx < -game->square_size) {
+				continue;
+			} else if (sx > game->square_size + w) {
+				break;
+			}
+
 			render_field(sx, sy, c->fields[POS(x, y)], field_get_mines(c, x, y));
 		}
 	}
@@ -163,11 +180,11 @@ static void render_chunk(struct chunk *c) {
 	// SDL_RenderDrawLine(renderer, sx, sy, sx, sy + game->square_size * CHUNK_SIZE);
 
 	next = get_neighbor(c, 1, 0);
-	if (next) {
+	if (next != NULL) {
 		render_chunk(next);
 	}
 	next = get_neighbor(c, 0, 1);
-	if (next) {
+	if (next != NULL) {
 		render_chunk(next);
 	}
 }
